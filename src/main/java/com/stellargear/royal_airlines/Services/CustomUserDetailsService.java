@@ -10,19 +10,31 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Busca la cuenta de usuario que corresponde a un correo.
+ *
+ * <p>Es el punto de entrada que usa Spring Security, tanto en el login con contrasena como al
+ * validar un token JWT.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-
+    /**
+     * Carga la cuenta asociada a un correo.
+     *
+     * @param email correo del usuario.
+     * @return principal con los datos y permisos del usuario.
+     * @throws UsernameNotFoundException si no existe ninguna cuenta con ese correo.
+     */
     @Override
     public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
         User user = userRepository.searchByEmail(email);
+
         if (user == null) {
-            System.out.println("User Not Found");
-            throw new UsernameNotFoundException("user not found");
+            throw new UsernameNotFoundException("Usuario no encontrado");
         }
 
         return new UserPrincipal(user);

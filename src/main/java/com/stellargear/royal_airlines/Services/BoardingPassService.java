@@ -5,29 +5,40 @@ import com.stellargear.royal_airlines.Models.Entities.BoardingPass;
 import com.stellargear.royal_airlines.Models.Entities.Fee;
 import com.stellargear.royal_airlines.Models.Entities.Flight;
 import com.stellargear.royal_airlines.Models.Entities.Seat;
+import com.stellargear.royal_airlines.Models.Enums.BoardingPassStatus;
 import com.stellargear.royal_airlines.Repositories.BoardingPassRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Emite los pases de abordar y los consulta por usuario.
+ *
+ * <p>El pase se genera al confirmar una reserva e incluye una copia de los datos del vuelo para
+ * poder mostrarse sin volver a consultar la reserva original.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class BoardingPassService {
 
+    /** Letras de puerta disponibles al asignar un pase. */
+    private static final char[] GATE_NUMBERS = {'A', 'B', 'C', 'D'};
+
     private final BoardingPassRepository boardingPassRepository;
     private final LocationService locationService;
 
-    private static final char[] GATE_NUMBERS = {'A', 'B', 'C', 'D'};
-
-    @Transactional( propagation = Propagation.REQUIRED)
-    public ResponseEntity<?> createBoardingPass (String userID, List<Seat> seats, Flight flight, Fee fee) {
+    /**
+     * Crea y guarda el pase de abordar de una reserva confirmada.
+     *
+     * @param userID propietario de la reserva.
+     * @param seats asientos comprados.
+     * @param flight vuelo reservado.
+     * @param fee tarifa comprada, que determina la clase del pase.
+     */
+    public void createBoardingPass(String userID, List<Seat> seats, Flight flight, Fee fee) {
         BoardingPass newPass = new BoardingPass();
 
         Random numberPicker = new Random();
@@ -40,7 +51,7 @@ public class BoardingPassService {
         }
 
         newPass.setBookedUserID(userID);
-        newPass.setStatus("Active");
+        newPass.setStatus(BoardingPassStatus.ACTIVE);
         newPass.setGroup(String.valueOf(numberPicker.nextInt(1, 20)));
         newPass.setGate(generateGate());
 
@@ -56,12 +67,14 @@ public class BoardingPassService {
         newPass.setDepartureIataCode(locationService.searchByID(flight.getDepartureLocationID()).getIataCode());
 
         boardingPassRepository.save(newPass);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-
-    public String generateGate () {
+    /**
+     * Elige una puerta de embarque al azar entre las disponibles.
+     *
+     * @return puerta con letra entre A y D y numero entre 1 y 3.
+     */
+    public String generateGate() {
         Random rng = new Random();
 
         int numberToSelect = rng.nextInt(GATE_NUMBERS.length);
@@ -70,79 +83,95 @@ public class BoardingPassService {
         return letter + "" + rng.nextInt(1, 4);
     }
 
-
-    public ResponseEntity<?> getAllBoardingPassesOfUser (String userID) {
-        List<BoardingPassDTO> returnedList = searchAndConvertListForUser(userID);
-
-        if (!returnedList.isEmpty()) {
-            return new ResponseEntity<>(returnedList, HttpStatus.OK);
-
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
-        }
-
+    /**
+     * Lista todos los pases de un usuario.
+     *
+     * @param userID propietario de los pases.
+     * @return pases del usuario, lista vacia si no tiene ninguno.
+     */
+    public List<BoardingPassDTO> getAllBoardingPassesOfUser(String userID) {
+        return searchAndConvertListForUser(userID);
     }
 
-
-    public ResponseEntity<?> getAllActiveBoardingPassesOfUser (String userID) {
-        List<BoardingPassDTO> returnedList = searchAndConvertActiveListForUser(userID);
-
-        if (!returnedList.isEmpty()) {
-            return new ResponseEntity<>(returnedList, HttpStatus.OK);
-
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
-        }
+    /**
+     * Lista los pases vigentes de un usuario.
+     *
+     * @param userID propietario de los pases.
+     * @return pases con estado activo.
+     */
+    public List<BoardingPassDTO> getAllActiveBoardingPassesOfUser(String userID) {
+        return searchAndConvertActiveListForUser(userID);
     }
 
-
-    public ResponseEntity<?> getAllInactiveBoardingPassesOfUser (String userID) {
-        List<BoardingPassDTO> returnedList = searchAndConvertInactiveListForUser(userID);
-
-        if (!returnedList.isEmpty()) {
-            return new ResponseEntity<>(returnedList, HttpStatus.OK);
-
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
-        }
+    /**
+     * Lista los pases ya inutilizados de un usuario.
+     *
+     * @param userID propietario de los pases.
+     * @return pases con estado inactivo.
+     */
+    public List<BoardingPassDTO> getAllInactiveBoardingPassesOfUser(String userID) {
+        return searchAndConvertInactiveListForUser(userID);
     }
 
-
-    public BoardingPassDTO objectToDto (BoardingPass requestedObject) {
-        BoardingPassDTO returnedDto = new BoardingPassDTO();
-
-        returnedDto.setBoardingPassID(requestedObject.getBoardingPassID());
-        returnedDto.setGate(requestedObject.getGate());
-        returnedDto.setGroup(requestedObject.getGroup());
-        returnedDto.setAirline(requestedObject.getAirline());
-        returnedDto.setSeats(requestedObject.getSeats());
-        returnedDto.setDepartureDate(requestedObject.getDepartureDate());
-        returnedDto.setFlightNumber(requestedObject.getFlightNumber());
-        returnedDto.setPassengerInfo(requestedObject.getPassengerInfo());
-        returnedDto.setArrivalIataCode(requestedObject.getArrivalIataCode());
-        returnedDto.setDepartureIataCode(requestedObject.getDepartureIataCode());
-        returnedDto.setSeatClass(requestedObject.getSeatClass());
-
-        return returnedDto;
+    /**
+     * Convierte un pase de la base de datos en su version para el cliente.
+     *
+     * @param requestedObject pase de la base de datos.
+     * @return pase listo para serializar.
+     */
+    public BoardingPassDTO objectToDto(BoardingPass requestedObject) {
+        return new BoardingPassDTO(
+                requestedObject.getBoardingPassID(),
+                requestedObject.getPassengerInfo(),
+                requestedObject.getSeats(),
+                requestedObject.getSeatClass(),
+                requestedObject.getGate(),
+                requestedObject.getGroup(),
+                requestedObject.getFlightNumber(),
+                requestedObject.getAirline(),
+                requestedObject.getDepartureIataCode(),
+                requestedObject.getArrivalIataCode(),
+                requestedObject.getDepartureDate()
+        );
     }
 
-
-    public List<BoardingPassDTO> searchAndConvertListForUser (String userToSearch) {
+    /**
+     * Busca todos los pases de un usuario y los convierte.
+     *
+     * @param userToSearch propietario de los pases.
+     * @return pases convertidos a DTO.
+     */
+    public List<BoardingPassDTO> searchAndConvertListForUser(String userToSearch) {
         return objectListToDto(boardingPassRepository.searchListByUserID(userToSearch));
     }
 
-
-    public List<BoardingPassDTO> searchAndConvertActiveListForUser (String userToSearch) {
-        return objectListToDto(boardingPassRepository.searchListByUserAndStatus(userToSearch, "Active"));
+    /**
+     * Busca los pases activos de un usuario y los convierte.
+     *
+     * @param userToSearch propietario de los pases.
+     * @return pases activos convertidos a DTO.
+     */
+    public List<BoardingPassDTO> searchAndConvertActiveListForUser(String userToSearch) {
+        return objectListToDto(boardingPassRepository.searchListByUserAndStatus(userToSearch, BoardingPassStatus.ACTIVE.name()));
     }
 
-
-    public List<BoardingPassDTO> searchAndConvertInactiveListForUser (String userToSearch) {
-        return objectListToDto(boardingPassRepository.searchListByUserAndStatus(userToSearch, "Inactive"));
+    /**
+     * Busca los pases inactivos de un usuario y los convierte.
+     *
+     * @param userToSearch propietario de los pases.
+     * @return pases inactivos convertidos a DTO.
+     */
+    public List<BoardingPassDTO> searchAndConvertInactiveListForUser(String userToSearch) {
+        return objectListToDto(boardingPassRepository.searchListByUserAndStatus(userToSearch, BoardingPassStatus.INACTIVE.name()));
     }
 
-
-    public List<BoardingPassDTO> objectListToDto (List<BoardingPass> requestedList) {
+    /**
+     * Convierte una lista de pases de la base de datos en DTO.
+     *
+     * @param requestedList pases a convertir.
+     * @return lista de pases convertidos.
+     */
+    public List<BoardingPassDTO> objectListToDto(List<BoardingPass> requestedList) {
         List<BoardingPassDTO> returnedList = new ArrayList<>();
 
         for (BoardingPass boardingPass : requestedList) {

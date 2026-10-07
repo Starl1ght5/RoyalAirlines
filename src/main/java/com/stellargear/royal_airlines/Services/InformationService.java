@@ -1,56 +1,57 @@
 package com.stellargear.royal_airlines.Services;
 
 import com.stellargear.royal_airlines.Models.DTOs.FlightDTO;
+import com.stellargear.royal_airlines.Models.DTOs.SeatDTO;
 import com.stellargear.royal_airlines.Models.Entities.Flight;
-import com.stellargear.royal_airlines.Models.Entities.Location;
-import com.stellargear.royal_airlines.Utils.MoneyExchange;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
+/**
+ * Reune las consultas publicas del catalogo: vuelos por destino y asientos por vuelo.
+ *
+ * <p>Se separa de los servicios de dominio para que los controladores que exponen rutas publicas
+ * no dependan directamente de la combinacion de varios repositorios.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class InformationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(InformationService.class);
+
     private final LocationService locationService;
     private final FlightService flightService;
     private final SeatService seatService;
-    private final MoneyExchange moneyExchange;
-    private final static Logger logger = LoggerFactory.getLogger(InformationService.class);
 
+    /**
+     * Busca los vuelos que llegan a un destino.
+     *
+     * @param arrivalIataCode codigo IATA del aeropuerto de llegada.
+     * @return vuelos del destino, lista vacia si no tiene ninguno.
+     * @throws com.stellargear.royal_airlines.Utils.NotFoundException si el codigo IATA no existe.
+     */
+    public List<FlightDTO> searchFlights(String arrivalIataCode) {
+        String locationID = locationService.searchByIataCode(arrivalIataCode);
 
-    /// FlightService Methods
-    public ResponseEntity<?> searchFlights (String arrivalIataCode) {
-        logger.info("Flight search request started!");
+        List<FlightDTO> flights = flightService.objectListToDto(flightService.searchFlightsForLocation(locationID));
 
-        String end = locationService.searchByIataCode(arrivalIataCode);
-        logger.info("Locations found successfully");
-
-        List<FlightDTO> returnedList = flightService.objectListToDto(flightService.searchFlightsForLocation(end));
-
-        if (returnedList.isEmpty()) {
-            logger.warn("List returned Empty");
-            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
-
-        } else {
-            logger.info("Flights searched completed");
-            return new ResponseEntity<>(returnedList, HttpStatus.OK);
-        }
-
+        logger.info("Busqueda de vuelos hacia {}: {} resultados", arrivalIataCode, flights.size());
+        return flights;
     }
 
-    ///  SeatService Methods
-    public ResponseEntity<?> getSeatsForFlight (String flightID) {
-        Flight searchedFlight = flightService.searchFlightByID(flightID);
+    /**
+     * Lista los asientos de un vuelo con su estado actual.
+     *
+     * @param flightID identificador del vuelo.
+     * @return asientos del vuelo.
+     * @throws com.stellargear.royal_airlines.Utils.NotFoundException si el vuelo no existe.
+     */
+    public List<SeatDTO> getSeatsForFlight(String flightID) {
+        Flight flight = flightService.searchFlightByID(flightID);
 
-        return new ResponseEntity<>(seatService.searchAndConvertList(searchedFlight.getAvailableSeatIDs()), HttpStatus.OK);
+        return seatService.searchAndConvertList(flight.getAvailableSeatIDs());
     }
-
 }

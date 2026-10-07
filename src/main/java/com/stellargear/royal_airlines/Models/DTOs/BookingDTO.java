@@ -1,31 +1,35 @@
 package com.stellargear.royal_airlines.Models.DTOs;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.stellargear.royal_airlines.Models.Enums.BookingStatus;
 import org.joda.money.Money;
 
 import java.util.List;
 
-@Setter
-@Getter
-public class BookingDTO {
-
-    private String bookingID;
-
-    private String userID;
-    private FlightDTO bookedFight;
-
-    private List<SeatDTO> bookedSeats;
-    private FeeDTO selectedFee;
-
-    private Money totalPrice;
-    private String status;
-    private int ticketCount;
-
-    private List<String> seatIDs;
-    private String flightID;
-    private String feeID;
-
-    public BookingDTO () {}
-
-}
+/**
+ * Vista completa de una reserva lista para el cliente.
+ *
+ * @param bookingID identificador de la reserva.
+ * @param userID propietario de la reserva.
+ * @param bookedFight datos del vuelo reservado.
+ * @param bookedSeats asientos reservados.
+ * @param selectedFee tarifa aplicada al vuelo.
+ * @param totalPrice importe total de la reserva ya convertido a pesos colombianos.
+ * @param status estado actual de la reserva.
+ * @param ticketCount numero de pasajes comprados.
+ * @param seatIDs identificadores de los asientos reservados.
+ * @param flightID identificador del vuelo reservado.
+ * @param feeID identificador de la tarifa seleccionada.
+ */
+public record BookingDTO(
+        String bookingID,
+        String userID,
+        FlightDTO bookedFight,
+        List<SeatDTO> bookedSeats,
+        FeeDTO selectedFee,
+        Money totalPrice,
+        BookingStatus status,
+        int ticketCount,
+        List<String> seatIDs,
+        String flightID,
+        String feeID
+) {}

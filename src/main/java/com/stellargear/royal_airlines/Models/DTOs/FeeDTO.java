@@ -1,18 +1,18 @@
 package com.stellargear.royal_airlines.Models.DTOs;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.joda.money.Money;
 
-@Setter
-@Getter
-public class FeeDTO {
-
-    private String feeID;
-    private String feeName;
-    private double priceDifference;
-    private Money price;
-
-    public FeeDTO () {}
-
-}
+/**
+ * Vista de una tarifa deassage.
+ *
+ * @param feeID identificador de la tarifa.
+ * @param feeName nombre comercial de la tarifa.
+ * @param priceDifference multiplicador aplicado sobre el precio del pasaje.
+ * @param precio de la tarifa ya convertido a pesos colombianos, o nulo cuando no aplica.
+ */
+public record FeeDTO(
+        String feeID,
+        String feeName,
+        double priceDifference,
+        Money price
+) {}

@@ -1,18 +1,18 @@
 package com.stellargear.royal_airlines.Models.DTOs;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Setter
-@Getter
-public class UserDTO {
-
-    private String userID;
-    private String username;
-    private String email;
-    private String password;
-    private boolean verified;
-
-    public UserDTO () {}
-
-}
+/**
+ * Vista de un usuario lista para el cliente.
+ *
+ * @param userID identificador del usuario.
+ * @param username nombre visible.
+ * @param email correo registrado.
+ * @param password nunca se expone el hash de la contrasena, por lo que viaja como nulo.
+ * @param verified indica si el correo fue verificado.
+ */
+public record UserDTO(
+        String userID,
+        String username,
+        String email,
+        String password,
+        boolean verified
+) {}

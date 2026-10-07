@@ -1,5 +1,6 @@
 package com.stellargear.royal_airlines.Models.Entities;
 
+import com.stellargear.royal_airlines.Models.Enums.BoardingPassStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -8,9 +9,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Pase de aboardar emitido al confirmar una reserva.
+ *
+ * <p>Guarda una copia de los datos del vuelo y del asiento para que el pase pueda mostrarse sin
+ * volver a consultar reservas, vuelos ni tarifas.</p>
+ */
 @Setter
 @Getter
-@Document (collection = "BoardingPass")
+@Document(collection = "BoardingPass")
 public class BoardingPass {
 
     @Id
@@ -32,7 +39,8 @@ public class BoardingPass {
     private String arrivalIataCode;
     private LocalDateTime departureDate;
 
-    public String status;
+    public BoardingPassStatus status;
 
-    public BoardingPass () {}
+    /** Crea el pase sin datos, todos los campos se asignan despues mediante sus setters. */
+    public BoardingPass() {}
 }

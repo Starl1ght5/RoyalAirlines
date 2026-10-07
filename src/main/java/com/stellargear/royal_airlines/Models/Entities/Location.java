@@ -7,6 +7,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 
+/**
+ * Destino turistico servido por la aerolinea.
+ *
+ * <p>Los destinos marcados como secretos quedan ocultos del catalogo publico y solo se usan
+ * desde las operaciones internas de la aplicacion.</p>
+ */
 @Setter
 @Getter
 @Document(collection = "Destinations")
@@ -14,6 +20,7 @@ public class Location {
 
     @Id
     private String locationID;
+
     private String cityName;
     private String countryName;
     private String iataCode;
@@ -26,6 +33,6 @@ public class Location {
     private double rating;
     private boolean secret;
 
-    public Location () {}
-
+    /** Crea el destino vacio para que el servicio asigne sus campos. */
+    public Location() {}
 }

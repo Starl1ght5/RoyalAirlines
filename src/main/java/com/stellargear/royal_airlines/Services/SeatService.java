@@ -4,110 +4,200 @@ import com.stellargear.royal_airlines.Models.DTOs.SeatDTO;
 import com.stellargear.royal_airlines.Models.Entities.Seat;
 import com.stellargear.royal_airlines.Repositories.SeatRepository;
 import com.stellargear.royal_airlines.Utils.MoneyExchange;
+import com.stellargear.royal_airlines.Utils.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+/**
+ * Genera los asientos de un vuelo y controla su disponibilidad.
+ */
 @Service
 @RequiredArgsConstructor
 public class SeatService {
 
     private final SeatRepository seatRepository;
     private final MoneyExchange moneyExchange;
+    private final MongoTemplate mongoTemplate;
 
+    /**
+     * Crea la parrilla completa de asientos de un vuelo.
+     *
+     * <p>Son seis filas de treinta asientos, guardados en una sola operacion. El precio baja
+     * cuanto mas atras esta la fila: las cinco primeras filas son las mas caras.</p>
+     *
+     * @return identificadores de los asientos creados.
+     */
+    public List<String> generateSeats() {
+        List<Seat> seats = new ArrayList<>();
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public List<String> generateSeats () {
+        for (int row = 0; row < 6; row++) {
 
-        List<String> returnedList = new ArrayList<>();
-        char letter;
+            char letter = (char) ('A' + row);
 
-        for (int i = 1; i < 7; i++) {
-
-            letter = (char) ('A' + i - 1);
-
-            for (int e = 1; e < 31; e++) {
+            for (int number = 1; number < 31; number++) {
 
                 Seat newSeat = new Seat();
                 newSeat.setReserved(false);
-                newSeat.setSeatNumber(letter + "" + e);
+                newSeat.setSeatNumber(letter + "" + number);
 
-                if (e < 6) {
+                if (number < 6) {
                     newSeat.setSeatPrice(15.00);
 
-                } else if (e < 13) {
+                } else if (number < 13) {
                     newSeat.setSeatPrice(9.00);
 
                 } else {
                     newSeat.setSeatPrice(5.00);
                 }
 
-                seatRepository.save(newSeat);
-                returnedList.add(newSeat.getSeatID());
+                seats.add(newSeat);
+            }
+        }
+
+        return seatRepository.saveAll(seats).stream().map(Seat::getSeatID).toList();
+    }
+
+    /**
+     * Retiene varios asientos, todos o ninguno.
+     *
+     * <p>Si alguno ya esta ocupado, se liberan los que se hubieran reservado antes en esta misma
+     * llamada y se responde 409.</p>
+     *
+     * @param seatIDs identificadores de los asientos a reservar.
+     * @throws ResponseStatusException con codigo 409 si alguno ya no esta disponible.
+     */
+    public void reserveAll(List<String> seatIDs) {
+        List<String> reserved = new ArrayList<>();
+
+        for (String seatID : seatIDs) {
+            if (!tryReserve(seatID)) {
+                release(reserved);
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "El asiento " + seatID + " ya no esta disponible");
             }
 
-        }
-
-        return returnedList;
-    }
-
-
-    @Transactional( propagation = Propagation.REQUIRED)
-    public void updateSeats (List<String> requestedIDs) {
-        for (String requestedID : requestedIDs) {
-            Seat objectToUpdate = seatRepository.searchByID(requestedID);
-
-            objectToUpdate.setReserved(true);
-
-            seatRepository.save(objectToUpdate);
+            reserved.add(seatID);
         }
     }
 
+    /**
+     * Intenta reservar un asiento, siempre que este libre.
+     *
+     * <p>La condicion de disponibilidad viaja en la propia consulta, de modo que dos reservas
+     * simultaneas del mismo asiento no puedan reservar dos veces.</p>
+     *
+     * @param seatID identificador del asiento.
+     * @return {@code true} si el asiento quedo reservado, {@code false} si ya estaba ocupado.
+     */
+    private boolean tryReserve(String seatID) {
+        Query onlyIfFree = Query.query(Criteria.where("seatID").is(seatID).and("reserved").is(false));
 
-    public List<SeatDTO> searchAndConvertList (List<String> requestedList) {
-        List<Seat> objectList = new ArrayList<>();
+        return mongoTemplate
+                .updateFirst(onlyIfFree, Update.update("reserved", true), Seat.class)
+                .getModifiedCount() == 1;
+    }
 
-        for (String s : requestedList) {
-            objectList.add(searchByID(s));
+    /**
+     * Libera los asientos indicados para que vuelvan al catalogo.
+     *
+     * @param seatIDs identificadores de los asientos a liberar; se ignora si es {@code null} o vacio.
+     */
+    public void release(Collection<String> seatIDs) {
+        if (seatIDs == null || seatIDs.isEmpty()) {
+            return;
         }
 
-        return objectListToDto(objectList);
+        mongoTemplate.updateMulti(
+                Query.query(Criteria.where("seatID").in(seatIDs)),
+                Update.update("reserved", false),
+                Seat.class);
     }
 
-
-    public Seat searchByID (String requestedID) {
-        return seatRepository.searchByID(requestedID);
+    /**
+     * Busca varios asientos y los convierte a DTO.
+     *
+     * @param requestedList identificadores de los asientos.
+     * @return asientos listos para serializar.
+     * @throws NotFoundException si alguno de los asientos no existe.
+     */
+    public List<SeatDTO> searchAndConvertList(List<String> requestedList) {
+        return objectListToDto(searchForListOfIDs(requestedList));
     }
 
-
-    public List<Seat> searchForListOfIDs (List<String> requestedIDs) {
-        List<Seat> returnedList = new ArrayList<>();
-
-        for (String requestedID : requestedIDs) {
-            returnedList.add(seatRepository.searchByID(requestedID));
-        }
-
-        return returnedList;
+    /**
+     * Busca un asiento por su identificador.
+     *
+     * @param requestedID identificador del asiento.
+     * @return asiento encontrado.
+     * @throws NotFoundException si el asiento no existe.
+     */
+    public Seat searchByID(String requestedID) {
+        return seatRepository.findById(requestedID)
+                .orElseThrow(() -> new NotFoundException("Asiento no encontrado: " + requestedID));
     }
 
+    /**
+     * Busca varios asientos por su identificador en una sola consulta.
+     *
+     * <p>Devuelve los asientos en el mismo orden en que se pidio, para que la respuesta coincida
+     * con la seleccion del usuario.</p>
+     *
+     * @param requestedIDs identificadores de los asientos a buscar.
+     * @return asientos encontrados, en el orden solicitado.
+     * @throws NotFoundException si alguno de los asientos no existe.
+     */
+    public List<Seat> searchForListOfIDs(List<String> requestedIDs) {
+        Map<String, Seat> seatsByID = seatRepository.findAllById(requestedIDs).stream()
+                .collect(Collectors.toMap(Seat::getSeatID, Function.identity()));
 
-    public SeatDTO objectToDto (Seat requestedObject) {
-        SeatDTO returnedDto = new SeatDTO();
+        return requestedIDs.stream()
+                .map(id -> {
+                    Seat seat = seatsByID.get(id);
 
-        returnedDto.setSeatID(requestedObject.getSeatID());
-        returnedDto.setSeatNumber(requestedObject.getSeatNumber());
-        returnedDto.setSeatPrice(moneyExchange.convertUSDtoCOP(requestedObject.getSeatPrice()));
-        returnedDto.setReserved(requestedObject.isReserved());
+                    if (seat == null) {
+                        throw new NotFoundException("Asiento no encontrado: " + id);
+                    }
 
-        return returnedDto;
+                    return seat;
+                })
+                .toList();
     }
 
+    /**
+     * Convierte un asiento de la base de datos en su version para el cliente.
+     *
+     * @param requestedObject asiento de la base de datos.
+     * @return asiento con el precio ya convertido a pesos colombianos.
+     */
+    public SeatDTO objectToDto(Seat requestedObject) {
+        return new SeatDTO(
+                requestedObject.getSeatID(),
+                requestedObject.getSeatNumber(),
+                moneyExchange.convertUSDtoCOP(requestedObject.getSeatPrice()),
+                requestedObject.isReserved()
+        );
+    }
 
-    public List<SeatDTO> objectListToDto (List<Seat> requestedList) {
+    /**
+     * Convierte una lista de asientos de la base de datos en DTO.
+     *
+     * @param requestedList asientos a convertir.
+     * @return lista de asientos convertidos.
+     */
+    public List<SeatDTO> objectListToDto(List<Seat> requestedList) {
         List<SeatDTO> returnedList = new ArrayList<>();
 
         for (Seat seat : requestedList) {

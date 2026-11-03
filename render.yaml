@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: recommender
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DB_URI
+        sync: false
+      - key: DB_DATABASE
+        value: royal_airlines
+      - key: INTERNAL_API_KEY
+        generateValue: true
+      - key: COP_USD_RATE
+        value: "4000"
+      - key: SPRING_INTERNAL_URL
+        sync: false

@@ -32,4 +32,13 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
      * @return reservas que cumplen ambas condiciones.
      */
     List<Booking> findByStatusAndBookingDateBefore(BookingStatus status, LocalDateTime limit);
+
+    /**
+     * Lista todas las reservas de un usuario.
+     *
+     * @param userID identificador del usuario.
+     * @return reservas del usuario, lista vacia si no tiene ninguna.
+     */
+    @Query("{ 'userID' : ?0 }")
+    List<Booking> searchListByUserID(String userID);
 }

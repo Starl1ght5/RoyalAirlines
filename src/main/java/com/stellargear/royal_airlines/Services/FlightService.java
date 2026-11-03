@@ -1,22 +1,29 @@
 package com.stellargear.royal_airlines.Services;
 
 import com.stellargear.royal_airlines.Models.DTOs.FlightDTO;
+import com.stellargear.royal_airlines.Models.DTOs.locations.LocationDTO;
+import com.stellargear.royal_airlines.Models.Entities.Fares;
 import com.stellargear.royal_airlines.Models.Entities.Flight;
+import com.stellargear.royal_airlines.Models.Events.FlightOfferCreatedEvent;
 import com.stellargear.royal_airlines.Models.Enums.FlightStatus;
 import com.stellargear.royal_airlines.Repositories.FlightRepository;
+import com.stellargear.royal_airlines.Utils.BadRequestException;
 import com.stellargear.royal_airlines.Utils.MoneyExchange;
+import com.stellargear.royal_airlines.Utils.SeatCatalog;
 import com.stellargear.royal_airlines.Utils.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Gestiona el alta de vuelos y su conversion a DTO.
@@ -29,9 +36,10 @@ public class FlightService {
 
     private final FlightRepository flightRepository;
     private final LocationService locationService;
-    private final SeatService seatService;
     private final MoneyExchange moneyExchange;
-    private final FeeService feeService;
+    private final FaresService faresService;
+    private final MongoTemplate mongoTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Crea un vuelo con sus asientos y todas las tarifas disponibles.
@@ -45,6 +53,34 @@ public class FlightService {
      * @throws NotFoundException si alguno de los aeropuertos no existe.
      */
     public String addNewFlight(String airlineName, double price, String departureID, String arrivalID, String flightNumber) {
+        return addNewFlight(airlineName, price, departureID, arrivalID, flightNumber, null, null, null);
+    }
+
+    /**
+     * Crea un vuelo y, si trae descuento, lo deja como oferta y publica el evento que dispara
+     * los avisos push.
+     *
+     * @param airlineName nombre de la compania aerea.
+     * @param price precio ORIGINAL del pasaje en dolares; si hay descuento, el precio de venta
+     *              ({@code ticketPrice}) queda rebajado y este valor se guarda en {@code basePrice}.
+     * @param departureID identificador del aeropuerto de salida.
+     * @param arrivalID identificador del aeropuerto de llegada.
+     * @param flightNumber numero de vuelo.
+     * @param discountPercentage descuento entre 1 y 90 (opcional; null o 0 = sin oferta).
+     * @param offerValidDays dias de vigencia de la oferta (opcional, 7 por defecto).
+     * @param departureInDays dias hasta la salida (opcional: 7 si es oferta, 0 si no). Una oferta
+     *                        con salida en el pasado no se notifica.
+     * @return identificador del vuelo creado.
+     * @throws NotFoundException si alguno de los aeropuertos no existe.
+     */
+    public String addNewFlight(String airlineName, double price, String departureID, String arrivalID,
+                               String flightNumber, Double discountPercentage, Integer offerValidDays,
+                               Integer departureInDays) {
+        boolean isOffer = discountPercentage != null && discountPercentage > 0;
+        if (isOffer && discountPercentage > 90) {
+            throw new BadRequestException("El descuento debe estar entre 1 y 90");
+        }
+
         locationService.searchByID(departureID);
         locationService.searchByID(arrivalID);
 
@@ -55,16 +91,77 @@ public class FlightService {
         newFlight.setFlightNumber(flightNumber);
         newFlight.setDepartureLocationID(departureID);
         newFlight.setArrivalLocationID(arrivalID);
-        newFlight.setDepartureDate(LocalDateTime.now());
-        newFlight.setArrivalDate(LocalDateTime.now().plusHours(2));
-        newFlight.setAvailableSeatIDs(seatService.generateSeats());
-        newFlight.setAvailableFeeIDs(feeService.getFees());
+        LocalDateTime departure = LocalDateTime.now()
+                .plusDays(departureInDays != null ? departureInDays : (isOffer ? 7 : 0));
+        LocalDateTime arrival = departure.plusHours(2);
+
+        newFlight.setDepartureDate(departure);
+        newFlight.setArrivalDate(arrival);
+        newFlight.setDurationMinutes((int) Duration.between(departure, arrival).toMinutes());
+        newFlight.setBasePrice(price);
+        newFlight.setSeatsLeft(SeatCatalog.CAPACITY);
+        newFlight.setPriceUpdatedAt(LocalDateTime.now());
+        newFlight.setSchemaVersion(Flight.CURRENT_SCHEMA_VERSION);
+        newFlight.setUpdatedAt(LocalDateTime.now());
+        newFlight.setAvailableFareIDs(faresService.getFees());
         newFlight.setStatus(FlightStatus.ACTIVE);
+
+        if (isOffer) {
+            newFlight.setDiscounted(true);
+            newFlight.setDiscountPercentage(discountPercentage);
+            newFlight.setBasePrice(price);
+            newFlight.setTicketPrice(Math.round(price * (1 - discountPercentage / 100) * 100.0) / 100.0);
+            newFlight.setOfferValidUntil(LocalDateTime.now().plusDays(offerValidDays != null ? offerValidDays : 7));
+        }
 
         flightRepository.save(newFlight);
 
+        if (isOffer) {
+            // Los listeners son @Async: la respuesta al admin no espera los avisos.
+            eventPublisher.publishEvent(new FlightOfferCreatedEvent(newFlight.getFlightID()));
+        }
+
         logger.info("Vuelo creado, id: {} numero {}", newFlight.getFlightID(), flightNumber);
         return newFlight.getFlightID();
+    }
+
+    /**
+     * Busca vuelos activos que llegan a un destino.
+     *
+     * @param origin codigo IATA de salida; {@code null} o vacio no filtra por origen.
+     * @param destination codigo IATA de llegada.
+     * @param departureDate dia de salida; {@code null} no filtra por fecha.
+     * @param passengers numero minimo de asientos libres; {@code null} no filtra por cupo.
+     * @return vuelos encontrados ya convertidos a DTO.
+     */
+    public List<FlightDTO> searchFlights(String origin, String destination,
+                                         LocalDate departureDate, Integer passengers) {
+        String arrivalID = locationService.searchByIataCode(destination);
+
+        Criteria criteria = Criteria.where("arrivalLocationID").is(arrivalID)
+                .and("status").is(FlightStatus.ACTIVE);
+
+        if (origin != null && !origin.isBlank()) {
+            criteria = criteria.and("departureLocationID")
+                    .is(locationService.searchByIataCode(origin));
+        }
+        if (departureDate != null) {
+            criteria = criteria.and("departureDate")
+                    .gte(departureDate.atStartOfDay())
+                    .lt(departureDate.plusDays(1).atStartOfDay());
+        }
+        if (passengers != null && passengers > 0) {
+            criteria = criteria.and("seatsLeft").gte(passengers);
+        }
+
+        Query query = Query.query(criteria);
+        query.fields().exclude("takenSeats");
+
+        List<FlightDTO> flights = objectListToDto(mongoTemplate.find(query, Flight.class));
+
+        logger.info("Busqueda de vuelos {} -> {} ({}): {} resultados",
+                origin, destination, departureDate, flights.size());
+        return flights;
     }
 
     /**
@@ -81,31 +178,6 @@ public class FlightService {
         long minutes = timeBetween.toMinutes() % 60;
 
         return hours + "h " + minutes + "m";
-    }
-
-    /**
-     * Devuelve el precio del vuelo mas barato que llega a un destino.
-     *
-     * @param locationForFlight identificador del aeropuerto de llegada.
-     * @return precio del pasaje mas barato en dolares.
-     * @throws NoSuchElementException si el destino no tiene ningun vuelo.
-     */
-    public double searchCheapestFromFlight(String locationForFlight) {
-        List<Flight> flightsToSearch = flightRepository.searchFlightsForLocation(locationForFlight);
-        return searchCheapestFromList(flightsToSearch).getTicketPrice();
-    }
-
-    /**
-     * Selecciona el vuelo mas barato de una lista.
-     *
-     * @param listToSearch lista de vuelos a comparar.
-     * @return vuelo con el precio mas bajo.
-     * @throws NoSuchElementException si la lista esta vacia.
-     */
-    public Flight searchCheapestFromList(List<Flight> listToSearch) {
-        return listToSearch.stream()
-                .min(Comparator.comparingDouble(Flight::getTicketPrice))
-                .orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -154,12 +226,13 @@ public class FlightService {
                 moneyExchange.convertUSDtoCOP(requestedObject.getTicketPrice()),
                 calculateTimeDifference(requestedObject.getDepartureDate(), requestedObject.getArrivalDate()),
                 requestedObject.getFlightNumber(),
+                requestedObject.getAircraft(),
                 locationService.findAndConvertObject(requestedObject.getDepartureLocationID()),
                 locationService.findAndConvertObject(requestedObject.getArrivalLocationID()),
                 requestedObject.getDepartureDate(),
                 requestedObject.getArrivalDate(),
-                null,
-                feeService.searchAndConvertList(requestedObject.getAvailableFeeIDs(), requestedObject.getTicketPrice())
+                requestedObject.getScales(),
+                faresService.searchAndConvertList(requestedObject.getAvailableFareIDs(), requestedObject.getTicketPrice())
         );
     }
 
@@ -170,12 +243,37 @@ public class FlightService {
      * @return lista de vuelos convertidos.
      */
     public List<FlightDTO> objectListToDto(List<Flight> requestedList) {
-        List<FlightDTO> returnedList = new ArrayList<>();
+        Set<String> locationIDs = new HashSet<>();
+        Set<String> fareIDs = new HashSet<>();
 
         for (Flight flight : requestedList) {
-            returnedList.add(objectToDto(flight));
+            locationIDs.add(flight.getDepartureLocationID());
+            locationIDs.add(flight.getArrivalLocationID());
+            if (flight.getAvailableFareIDs() != null) {
+                fareIDs.addAll(flight.getAvailableFareIDs());
+            }
         }
 
+        Map<String, LocationDTO> locations = locationService.findAndConvertByIDs(locationIDs);
+        Map<String, Fares> fares = faresService.loadByIDs(fareIDs);
+
+        List<FlightDTO> returnedList = new ArrayList<>();
+        for (Flight flight : requestedList) {
+            returnedList.add(new FlightDTO(
+                    flight.getFlightID(),
+                    flight.getAirline(),
+                    moneyExchange.convertUSDtoCOP(flight.getTicketPrice()),
+                    calculateTimeDifference(flight.getDepartureDate(), flight.getArrivalDate()),
+                    flight.getFlightNumber(),
+                    flight.getAircraft(),
+                    locations.get(flight.getDepartureLocationID()),
+                    locations.get(flight.getArrivalLocationID()),
+                    flight.getDepartureDate(),
+                    flight.getArrivalDate(),
+                    flight.getScales(),
+                    faresService.convertList(flight.getAvailableFareIDs(), fares, flight.getTicketPrice())
+            ));
+        }
         return returnedList;
     }
 }

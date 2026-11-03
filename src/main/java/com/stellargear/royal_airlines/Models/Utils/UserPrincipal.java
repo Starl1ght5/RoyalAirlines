@@ -39,11 +39,21 @@ public class UserPrincipal implements UserDetails {
     /**
      * Permisos del usuario dentro de la aplicacion.
      *
-     * @return lista con el rol {@code ROLE_USER}, que habilita {@code hasRole("USER")}.
+     * <p>Los roles vienen de {@code User.roles} con el prefijo {@code ROLE_}: una cuenta sin
+     * el campo (las antiguas) recibe {@code ROLE_USER}, y solo un {@code ADMIN} explicito
+     * habilita las rutas de administracion.</p>
+     *
+     * @return roles de la cuenta listos para Spring Security.
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        List<String> roles = user.getRoles() == null || user.getRoles().isEmpty()
+                ? List.of("USER")
+                : user.getRoles();
+
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                .toList();
     }
 
     /**

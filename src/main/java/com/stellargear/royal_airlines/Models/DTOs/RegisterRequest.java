@@ -1,6 +1,7 @@
 package com.stellargear.royal_airlines.Models.DTOs;
 
-import jakarta.validation.constraints.Email;
+import com.stellargear.royal_airlines.Models.Validation.ValidEmail;
+import com.stellargear.royal_airlines.Models.Validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -12,15 +13,17 @@ import jakarta.validation.constraints.Size;
  *
  * @param email correo unico de la cuenta.
  * @param password contrasena de entre 8 y 72 caracteres.
+ * @param fullName nombre visible; opcional para no romper a los clientes que aun no lo envian.
  */
 public record RegisterRequest(
 
-        @NotBlank(message = "El email es obligatorio")
-        @Email(message = "El email no es valido")
-        @Size(max = 254, message = "El email es demasiado largo")
+        @ValidEmail
         String email,
 
         @NotBlank(message = "La contrasena es obligatoria")
-        @Size(min = 8, max = 72, message = "La contrasena debe tener entre 8 y 72 caracteres")
-        String password
+        @ValidPassword
+        String password,
+
+        @Size(max = 100, message = "El nombre es demasiado largo")
+        String fullName
 ) {}

@@ -1,24 +1,20 @@
 package com.stellargear.royal_airlines.Controllers;
 
-import com.stellargear.royal_airlines.Models.DTOs.CreateLocationRequest;
-import com.stellargear.royal_airlines.Models.DTOs.LocationDTO;
+import com.stellargear.royal_airlines.Models.DTOs.locations.LocationDTO;
 import com.stellargear.royal_airlines.Services.LocationService;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Expone el catalogo de destinos y el alta de nuevos Aeropuertos.
+ * Expone el catalogo publico de destinos.
  */
 @RestController
 @RequiredArgsConstructor
@@ -26,17 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LocationController {
 
     private final LocationService locationService;
-
-    /**
-     * Registra un destino nuevo. Ruta reservada a ADMIN.
-     *
-     * @param request ciudad, pais, codigo IATA y nombre del aeropuerto.
-     */
-    @PostMapping(path = "/debug/create")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createNewLocation(@Valid @RequestBody CreateLocationRequest request) {
-        locationService.addNewLocation(request);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(LocationService.class);
 
     /**
      * Lista los destinos publicos, opcionalmente solo los destacados.
@@ -54,6 +40,7 @@ public class LocationController {
             return locationService.getFeaturedLocations(page, size);
         }
 
+        logger.info("Retornados los destinos: {}", featured);
         return locationService.getLocations(page, size);
     }
 }

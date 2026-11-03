@@ -31,18 +31,6 @@ public class MoneyExchange {
     }
 
     /**
-     * Convierte un importe de pesos colombianos a dolares.
-     *
-     * @param copValue importe en pesos colombianos.
-     * @return importe equivalente en dolares, redondeado a dos decimales.
-     */
-    public Money convertCOPtoUSD(double copValue) {
-        Money cop = Money.of(CurrencyUnit.of("COP"), new BigDecimal(copValue));
-        BigDecimal convertedAmount = cop.getAmount().divide(COP_EXCHANGE_RATE, 2, RoundingMode.HALF_UP);
-        return Money.of(CurrencyUnit.USD, convertedAmount);
-    }
-
-    /**
      * Calcula el precio de una tarifa sobre el precio base de un pasaje.
      *
      * @param fees multiplicador de la tarifa.
@@ -53,16 +41,5 @@ public class MoneyExchange {
         Money amount = Money.of(CurrencyUnit.USD, basePrice);
         Money totalPrice = amount.multipliedBy(fees, RoundingMode.DOWN);
         return totalPrice.convertedTo(CurrencyUnit.of("COP"), COP_EXCHANGE_RATE, RoundingMode.DOWN);
-    }
-
-    /**
-     * Devuelve un importe en dolares como numero simple.
-     *
-     * @param value importe en pesos colombianos.
-     * @return importe equivalente en dolares.
-     */
-    public double getAmountFromMoney(double value) {
-        Money valueToExtract = convertCOPtoUSD(value);
-        return valueToExtract.getAmount().doubleValue();
     }
 }

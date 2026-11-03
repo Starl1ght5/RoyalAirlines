@@ -33,6 +33,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final InternalApiKeyFilter internalApiKeyFilter;
     private final CustomUserDetailsService userDetailsService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
@@ -51,19 +52,21 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/v1/flights/debug/**", "/api/v1/locations/debug/**").hasRole("ADMIN")
+                        // Autenticadas por InternalApiKeyFilter con X-API-Key, no con JWT de usuario.
+                        .requestMatchers("/internal/**").hasRole("INTERNAL")
 
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users/register", "/api/v1/users/login", "/api/v1/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/register", "/api/v1/users/login", "/api/v1/auth/google", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/verify").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/locations/**", "/api/v1/flights/search", "/api/v1/flights/seats/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/locations/**", "/api/v1/flights/search", "/api/v1/flights/*/seats", "/api/v1/promotions").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(internalApiKeyFilter, JwtFilter.class)
                 .build();
     }
 

@@ -6,8 +6,8 @@ package com.stellargear.royal_airlines.Models.Enums;
 public enum BookingStatus {
     /** Reserva creada con asientos retenidos y a la espera de confirmacion. */
     PENDING,
-    /** Reserva confirmada, con su pase de aboardar emitido. */
+    /** Reserva confirmada por el usuario; los asientos siguen ocupados. */
     CONFIRMED,
-    /** Reserva cancelada, con sus asientos liberados. */
+    /** Reserva cancelada, con sus asientos liberados y su motivo en {@code cancelReason}. */
     CANCELED
 }

@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
  *
  * <p>Resuelve el usuario local a partir de los datos de Google, genera el JWT de Royal Airlines
  * y lo entrega al frontend como fragmento de la URL. El flujo movil, donde el cliente envia el
- * {@code idToken}, se atiende en {@code GoogleAuthController}.</p>
+ * {@code idToken}, se atiende en {@code AuthController}.</p>
  */
 @Component
 @RequiredArgsConstructor

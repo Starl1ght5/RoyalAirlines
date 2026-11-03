@@ -2,6 +2,7 @@ package com.stellargear.royal_airlines.Services;
 
 import com.stellargear.royal_airlines.Models.Entities.User;
 import com.stellargear.royal_airlines.Repositories.UserRepository;
+import com.stellargear.royal_airlines.Utils.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -73,12 +75,12 @@ public class GoogleAccountService {
      *
      * @param idToken token de identidad firmado por Google.
      * @return JWT de Royal Airlines.
-     * @throws ResponseStatusException con codigo 400 si falta el token o con codigo 401 si no supera
-     *                               la validacion o la cuenta no es utilizable.
+     * @throws BadRequestException si falta el token.
+     * @throws ResponseStatusException con codigo 401 si no supera la validacion o la cuenta no es utilizable.
      */
     public String loginWithIdToken(String idToken) {
         if (idToken == null || idToken.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "idToken requerido");
+            throw new BadRequestException("idToken requerido");
         }
 
         Jwt googleToken;
@@ -125,6 +127,7 @@ public class GoogleAccountService {
         if (user == null) {
             user = new User();
             user.setEmail(email);
+            user.setCreatedAt(LocalDateTime.now());
 
         } else if (!user.isVerified()) {
             user.setPassword(null);

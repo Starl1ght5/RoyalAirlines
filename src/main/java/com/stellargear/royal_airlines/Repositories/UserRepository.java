@@ -1,5 +1,6 @@
 package com.stellargear.royal_airlines.Repositories;
 
+import java.util.List;
 import com.stellargear.royal_airlines.Models.Entities.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -43,4 +44,11 @@ public interface UserRepository extends MongoRepository<User, String> {
      */
     @Query("{ 'verificationCode' : ?0 }")
     User searchFromToken(String token);
+
+    /**
+     * Usuarios que aceptaron recibir ofertas (notificaciones de marketing).
+     *
+     * @return usuarios con {@code marketingOptIn} activo.
+     */
+    List<User> findByMarketingOptInTrue();
 }

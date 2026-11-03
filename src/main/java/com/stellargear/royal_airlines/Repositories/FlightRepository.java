@@ -1,9 +1,11 @@
 package com.stellargear.royal_airlines.Repositories;
 
 import com.stellargear.royal_airlines.Models.Entities.Flight;
+import com.stellargear.royal_airlines.Models.Enums.FlightStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,4 +33,26 @@ public interface FlightRepository extends MongoRepository<Flight, String> {
      */
     @Query("{ 'flightID' : ?0 }")
     Flight searchByID(String flightID);
+
+    /**
+     * Vuelos con un estado dado y salida en el intervalo {@code [from, to)}.
+     *
+     * <p>Los usa el job de {@code PriceSnapshots}.</p>
+     *
+     * @param status estado del vuelo.
+     * @param from inicio del intervalo de salida, inclusive.
+     * @param to fin del intervalo de salida, exclusivo.
+     * @return vuelos que cumplen las condiciones.
+     */
+    List<Flight> findByStatusAndDepartureDateBetween(FlightStatus status, LocalDateTime from, LocalDateTime to);
+
+    /**
+     * Ofertas pendientes de aviso push, para el job de respaldo.
+     *
+     * @param status estado del vuelo (ACTIVE).
+     * @param from limite inferior de {@code updatedAt}: ignora ofertas viejas (seeds antiguos).
+     * @param to limite superior de {@code updatedAt}: deja pasar al evento normal primero.
+     */
+    List<Flight> findByDiscountedTrueAndOfferNotifiedAtIsNullAndStatusAndUpdatedAtBetween(
+            FlightStatus status, LocalDateTime from, LocalDateTime to);
 }

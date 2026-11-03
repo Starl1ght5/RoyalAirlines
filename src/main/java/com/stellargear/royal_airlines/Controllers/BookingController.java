@@ -5,6 +5,8 @@ import com.stellargear.royal_airlines.Models.DTOs.CreateBookingRequest;
 import com.stellargear.royal_airlines.Models.Utils.UserPrincipal;
 import com.stellargear.royal_airlines.Services.BookingService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Gestiona el ciclo de vida de las reservas: creacion, consulta, confirmacion y cancelacion.
@@ -57,7 +61,18 @@ public class BookingController {
     }
 
     /**
-     * Confirma una reserva pendiente y emite su pase de abordar.
+     * Lista todas las reservas del usuario, de la mas reciente a la mas antigua.
+     *
+     * @param principal usuario extraido del token JWT.
+     * @return reservas propias, lista vacia si no tiene ninguna.
+     */
+    @GetMapping(path = "/my")
+    public List<BookingDTO> getMyBookings(@AuthenticationPrincipal UserPrincipal principal) {
+        return bookingService.searchAllByUser(principal.getUserID());
+    }
+
+    /**
+     * Confirma una reserva pendiente.
      *
      * @param id identificador de la reserva a confirmar.
      * @param principal usuario extraido del token JWT.
@@ -66,6 +81,20 @@ public class BookingController {
     public void confirmBooking(@RequestParam @NotBlank String id,
                                @AuthenticationPrincipal UserPrincipal principal) {
         bookingService.confirmBooking(id, principal.getUserID());
+    }
+
+    /**
+     * Califica el viaje de una reserva confirmada cuyo vuelo ya llego.
+     *
+     * @param id identificador de la reserva.
+     * @param rating calificacion de 1 a 5.
+     * @param principal usuario extraido del token JWT.
+     */
+    @PatchMapping(path = "/rate")
+    public void rateBooking(@RequestParam @NotBlank String id,
+                            @RequestParam @Min(1) @Max(5) int rating,
+                            @AuthenticationPrincipal UserPrincipal principal) {
+        bookingService.rateBooking(id, principal.getUserID(), rating);
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.stellargear.royal_airlines.Repositories;
 
 import com.stellargear.royal_airlines.Models.Entities.Location;
+import com.stellargear.royal_airlines.Models.Enums.LocationStatus;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -28,28 +30,31 @@ public interface LocationRepository extends MongoRepository<Location, String> {
     Location findByIataCode(String iataCode);
 
     /**
-     * Busca un destino por su ciudad.
-     *
-     * @param cityName nombre de la ciudad.
-     * @return destino encontrado o {@code null}.
-     */
-    Location findByCityName(String cityName);
-
-    /**
      * Lista los destinos publicos de forma paginada.
      *
      * @param pageable pagina y cantidad solicitada.
+     * @param status estado que deben tener los destinos.
      * @return pagina de destinos visibles.
      */
-    Page<Location> findBySecretFalse(Pageable pageable);
+    Page<Location> findByStatus(Pageable pageable, LocationStatus status);
 
     /**
      * Lista de forma paginada los destinos publicos destacados.
      *
      * @param pageable pagina y cantidad solicitada.
+     * @param status estado que deben tener los destinos.
      * @return pagina de destinos destacados.
      */
-    Page<Location> findBySecretFalseAndFeaturedTrue(Pageable pageable);
+    Page<Location> findByStatusAndFeaturedTrue(Pageable pageable, LocationStatus status);
+
+    /**
+     * Lista TODOS los destinos con un estado dado (sin paginar). Lo usa el refresh
+     * del featured dinamico para conocer el universo de destinos ACTIVE.
+     *
+     * @param status estado del destino.
+     * @return destinos con ese estado.
+     */
+    List<Location> findByStatus(LocationStatus status);
 
     /**
      * Comprueba si ya existe un destino con los mismos datos.

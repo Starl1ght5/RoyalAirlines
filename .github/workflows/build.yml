@@ -1,0 +1,29 @@
+name: Build and push image
+
+on:
+  push:
+    branches: [ Python ]
+    paths:
+      - 'recommender/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./recommender
+          file: ./recommender/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/recommender:${{ github.run_number }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/recommender:latest

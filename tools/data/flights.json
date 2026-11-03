@@ -1,0 +1,137 @@
+{
+  "templates": [
+    {
+      "index": 0,
+      "airline": "Royal Airlines",
+      "flightNumber": "RA-100",
+      "aircraft": "Airbus A320",
+      "departureHour": 6,
+      "departureMinute": 0,
+      "durationHours": 1,
+      "durationMinutes": 20,
+      "stops": 0,
+      "basePrice": 185000
+    },
+    {
+      "index": 1,
+      "airline": "SkyBridge",
+      "flightNumber": "RA-107",
+      "aircraft": "Boeing 737-800",
+      "departureHour": 9,
+      "departureMinute": 15,
+      "durationHours": 2,
+      "durationMinutes": 31,
+      "stops": 1,
+      "basePrice": 197000
+    },
+    {
+      "index": 2,
+      "airline": "Continental Wings",
+      "flightNumber": "RA-114",
+      "aircraft": "Airbus A319",
+      "departureHour": 12,
+      "departureMinute": 30,
+      "durationHours": 3,
+      "durationMinutes": 42,
+      "stops": 2,
+      "basePrice": 209000
+    },
+    {
+      "index": 3,
+      "airline": "AeroLatam Plus",
+      "flightNumber": "RA-121",
+      "aircraft": "Embraer E190",
+      "departureHour": 15,
+      "departureMinute": 45,
+      "durationHours": 4,
+      "durationMinutes": 53,
+      "stops": 0,
+      "basePrice": 221000
+    },
+    {
+      "index": 4,
+      "airline": "Royal Airlines",
+      "flightNumber": "RA-128",
+      "aircraft": "Airbus A320",
+      "departureHour": 18,
+      "departureMinute": 0,
+      "durationHours": 1,
+      "durationMinutes": 24,
+      "stops": 1,
+      "basePrice": 233000
+    },
+    {
+      "index": 5,
+      "airline": "SkyBridge",
+      "flightNumber": "RA-135",
+      "aircraft": "Boeing 737-800",
+      "departureHour": 21,
+      "departureMinute": 15,
+      "durationHours": 2,
+      "durationMinutes": 35,
+      "stops": 2,
+      "basePrice": 245000
+    }
+  ],
+  "fareTiers": [
+    {
+      "tierName": "Basic",
+      "travelClass": "economy",
+      "priceMultiplier": 1.0,
+      "seatsAvailable": 9,
+      "benefits": [
+        "Bolso o mochila",
+        "Cambio con cargo + diferencia de precio",
+        "No aplican beneficios por categorías de socios",
+        "Acumulas menos: 1 punto calificable por dólar"
+      ]
+    },
+    {
+      "tierName": "Light",
+      "travelClass": "economy",
+      "priceMultiplier": 1.24,
+      "seatsAvailable": 7,
+      "benefits": [
+        "Bolso o mochila",
+        "Maleta pequeña 12 kg",
+        "Cambio con cargo + diferencia de precio",
+        "Postulación a upgrade de cabina con tramos",
+        "Acumula más: 20 puntos calificables por dólar"
+      ]
+    },
+    {
+      "tierName": "Full",
+      "travelClass": "economy",
+      "priceMultiplier": 1.48,
+      "seatsAvailable": 5,
+      "benefits": [
+        "Bolso o mochila",
+        "Maleta pequeña 12 kg",
+        "1 equipaje de bodega 23 kg",
+        "Cambio sin cargo + diferencia de precio",
+        "Devolución antes de la salida del primer vuelo",
+        "Selección de asiento estándar",
+        "Postulación a upgrade de cabina con tramos",
+        "Acumula más: 20 puntos calificables por dólar"
+      ]
+    },
+    {
+      "tierName": "Premium Economy Standard",
+      "travelClass": "premiumEconomy",
+      "priceMultiplier": 1.61,
+      "seatsAvailable": 4,
+      "benefits": [
+        "Bolso o mochila",
+        "Maleta pequeña 16 kg",
+        "1 equipaje de bodega 23 kg",
+        "Cambio con cargo + diferencia de precio",
+        "Sin devolución de pasaje",
+        "Asiento del medio bloqueado",
+        "Mejor oferta gastronómica",
+        "Más espacio para tus piernas",
+        "Embarque y desembarque prioritario",
+        "Acumula más: 20 puntos calificables por dólar"
+      ]
+    }
+  ]
+}

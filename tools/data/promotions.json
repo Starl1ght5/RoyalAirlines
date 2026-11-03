@@ -1,0 +1,56 @@
+[
+  {
+    "id": "promo_001",
+    "title": "Cartagena desde",
+    "subtitle": "Fin de semana ideal con tarifas especiales",
+    "discountLabel": "Desde COP 245K",
+    "origin": "BOG",
+    "destination": "CTG",
+    "active": true
+  },
+  {
+    "id": "promo_002",
+    "title": "Vuelos nacionales",
+    "subtitle": "Conecta Bogotá, Medellín, Cali y más",
+    "discountLabel": "Hasta 30% OFF",
+    "origin": "BOG",
+    "destination": "MDE",
+    "active": true
+  },
+  {
+    "id": "promo_003",
+    "title": "Upgrade Premium",
+    "subtitle": "Más espacio, más confort y mejor experiencia",
+    "discountLabel": "A solo COP 89K",
+    "origin": "BOG",
+    "destination": "MIA",
+    "active": true
+  },
+  {
+    "id": "promo_004",
+    "title": "Madrid en oferta",
+    "subtitle": "Destinos internacionales para viajar ya",
+    "discountLabel": "Hasta 25% OFF",
+    "origin": "BOG",
+    "destination": "MAD",
+    "active": true
+  },
+  {
+    "id": "promo_005",
+    "title": "Royal Club",
+    "subtitle": "Acumula millas y disfruta beneficios exclusivos",
+    "discountLabel": "2X Millas",
+    "origin": "BOG",
+    "destination": "CTG",
+    "active": true
+  },
+  {
+    "id": "promo_006",
+    "title": "Escapada al Caribe",
+    "subtitle": "Sol, playa y vuelos directos desde Colombia",
+    "discountLabel": "Bajo reserva",
+    "origin": "MDE",
+    "destination": "CTG",
+    "active": true
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "code": "BOG",
+    "city": "Bogotá",
+    "country": "Colombia",
+    "airportName": "El Dorado"
+  },
+  {
+    "code": "MDE",
+    "city": "Medellín",
+    "country": "Colombia",
+    "airportName": "José María Córdova"
+  },
+  {
+    "code": "CTG",
+    "city": "Cartagena",
+    "country": "Colombia",
+    "airportName": "Rafael Núñez"
+  },
+  {
+    "code": "CLO",
+    "city": "Cali",
+    "country": "Colombia",
+    "airportName": "Alfonso Bonilla Aragón"
+  },
+  {
+    "code": "MIA",
+    "city": "Miami",
+    "country": "Estados Unidos",
+    "airportName": "Miami International"
+  },
+  {
+    "code": "MAD",
+    "city": "Madrid",
+    "country": "España",
+    "airportName": "Adolfo Suárez"
+  },
+  {
+    "code": "DOH",
+    "city": "Doha",
+    "country": "Qatar",
+    "airportName": "Hamad International"
+  }
+]

@@ -1,0 +1,279 @@
+[
+  {
+    "id": "RSV_1001",
+    "confirmationCode": "ROYAL7A2",
+    "userId": "usr_001",
+    "flight": {
+      "id": "FL_BOG_CTG_20260815_0",
+      "airline": "Royal Airlines",
+      "flightNumber": "RA-100",
+      "aircraft": "Airbus A320",
+      "origin": {
+        "code": "BOG",
+        "city": "Bogotá",
+        "country": "Colombia",
+        "airportName": "El Dorado"
+      },
+      "destination": {
+        "code": "CTG",
+        "city": "Cartagena",
+        "country": "Colombia",
+        "airportName": "Rafael Núñez"
+      },
+      "departureTime": "2026-08-15T06:00:00.000",
+      "arrivalTime": "2026-08-15T07:20:00.000",
+      "stops": 0,
+      "fare": {
+        "travelClass": "economy",
+        "tierName": "Full",
+        "price": 273800,
+        "seatsAvailable": 5,
+        "benefits": [
+          "Bolso o mochila",
+          "Maleta pequeña 12 kg",
+          "1 equipaje de bodega 23 kg",
+          "Cambio sin cargo + diferencia de precio",
+          "Devolución antes de la salida del primer vuelo",
+          "Selección de asiento estándar",
+          "Postulación a upgrade de cabina con tramos",
+          "Acumula más: 20 puntos calificables por dólar"
+        ]
+      },
+      "fares": [
+        {
+          "travelClass": "economy",
+          "tierName": "Basic",
+          "price": 185000,
+          "seatsAvailable": 9,
+          "benefits": [
+            "Bolso o mochila",
+            "Cambio con cargo + diferencia de precio",
+            "No aplican beneficios por categorías de socios",
+            "Acumulas menos: 1 punto calificable por dólar"
+          ]
+        },
+        {
+          "travelClass": "economy",
+          "tierName": "Light",
+          "price": 229400,
+          "seatsAvailable": 7,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 12 kg",
+            "Cambio con cargo + diferencia de precio",
+            "Postulación a upgrade de cabina con tramos",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        },
+        {
+          "travelClass": "economy",
+          "tierName": "Full",
+          "price": 273800,
+          "seatsAvailable": 5,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 12 kg",
+            "1 equipaje de bodega 23 kg",
+            "Cambio sin cargo + diferencia de precio",
+            "Devolución antes de la salida del primer vuelo",
+            "Selección de asiento estándar",
+            "Postulación a upgrade de cabina con tramos",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        },
+        {
+          "travelClass": "premiumEconomy",
+          "tierName": "Premium Economy Standard",
+          "price": 297850,
+          "seatsAvailable": 4,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 16 kg",
+            "1 equipaje de bodega 23 kg",
+            "Cambio con cargo + diferencia de precio",
+            "Sin devolución de pasaje",
+            "Asiento del medio bloqueado",
+            "Mejor oferta gastronómica",
+            "Más espacio para tus piernas",
+            "Embarque y desembarque prioritario",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        }
+      ]
+    },
+    "fare": {
+      "travelClass": "economy",
+      "tierName": "Full",
+      "price": 273800,
+      "seatsAvailable": 5,
+      "benefits": [
+        "Bolso o mochila",
+        "Maleta pequeña 12 kg",
+        "1 equipaje de bodega 23 kg",
+        "Cambio sin cargo + diferencia de precio",
+        "Devolución antes de la salida del primer vuelo",
+        "Selección de asiento estándar",
+        "Postulación a upgrade de cabina con tramos",
+        "Acumula más: 20 puntos calificables por dólar"
+      ]
+    },
+    "seats": ["12A"],
+    "passengers": [
+      {
+        "fullName": "Alejandro Torres",
+        "documentNumber": "1032456789",
+        "birthDate": "1995-06-15T00:00:00.000"
+      }
+    ],
+    "payment": {
+      "cardHolderName": "Alejandro Torres",
+      "maskedCardNumber": "•••• •••• •••• 4242",
+      "expiry": "12/29"
+    },
+    "totalPrice": 288800,
+    "bookedAt": "2026-08-10T14:32:00.000"
+  },
+  {
+    "id": "RSV_1002",
+    "confirmationCode": "RQ4KZ8P",
+    "userId": "usr_001",
+    "flight": {
+      "id": "FL_MDE_MAD_20261012_1",
+      "airline": "SkyBridge",
+      "flightNumber": "RA-107",
+      "aircraft": "Boeing 737-800",
+      "origin": {
+        "code": "MDE",
+        "city": "Medellín",
+        "country": "Colombia",
+        "airportName": "José María Córdova"
+      },
+      "destination": {
+        "code": "MAD",
+        "city": "Madrid",
+        "country": "España",
+        "airportName": "Adolfo Suárez"
+      },
+      "departureTime": "2026-10-12T09:15:00.000",
+      "arrivalTime": "2026-10-12T21:46:00.000",
+      "stops": 1,
+      "fare": {
+        "travelClass": "premiumEconomy",
+        "tierName": "Premium Economy Standard",
+        "price": 394450,
+        "seatsAvailable": 4,
+        "benefits": [
+          "Bolso o mochila",
+          "Maleta pequeña 16 kg",
+          "1 equipaje de bodega 23 kg",
+          "Cambio con cargo + diferencia de precio",
+          "Sin devolución de pasaje",
+          "Asiento del medio bloqueado",
+          "Mejor oferta gastronómica",
+          "Más espacio para tus piernas",
+          "Embarque y desembarque prioritario",
+          "Acumula más: 20 puntos calificables por dólar"
+        ]
+      },
+      "fares": [
+        {
+          "travelClass": "economy",
+          "tierName": "Basic",
+          "price": 197000,
+          "seatsAvailable": 9,
+          "benefits": [
+            "Bolso o mochila",
+            "Cambio con cargo + diferencia de precio",
+            "No aplican beneficios por categorías de socios",
+            "Acumulas menos: 1 punto calificable por dólar"
+          ]
+        },
+        {
+          "travelClass": "economy",
+          "tierName": "Light",
+          "price": 244280,
+          "seatsAvailable": 7,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 12 kg",
+            "Cambio con cargo + diferencia de precio",
+            "Postulación a upgrade de cabina con tramos",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        },
+        {
+          "travelClass": "economy",
+          "tierName": "Full",
+          "price": 291560,
+          "seatsAvailable": 5,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 12 kg",
+            "1 equipaje de bodega 23 kg",
+            "Cambio sin cargo + diferencia de precio",
+            "Devolución antes de la salida del primer vuelo",
+            "Selección de asiento estándar",
+            "Postulación a upgrade de cabina con tramos",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        },
+        {
+          "travelClass": "premiumEconomy",
+          "tierName": "Premium Economy Standard",
+          "price": 394450,
+          "seatsAvailable": 4,
+          "benefits": [
+            "Bolso o mochila",
+            "Maleta pequeña 16 kg",
+            "1 equipaje de bodega 23 kg",
+            "Cambio con cargo + diferencia de precio",
+            "Sin devolución de pasaje",
+            "Asiento del medio bloqueado",
+            "Mejor oferta gastronómica",
+            "Más espacio para tus piernas",
+            "Embarque y desembarque prioritario",
+            "Acumula más: 20 puntos calificables por dólar"
+          ]
+        }
+      ]
+    },
+    "fare": {
+      "travelClass": "premiumEconomy",
+      "tierName": "Premium Economy Standard",
+      "price": 394450,
+      "seatsAvailable": 4,
+      "benefits": [
+        "Bolso o mochila",
+        "Maleta pequeña 16 kg",
+        "1 equipaje de bodega 23 kg",
+        "Cambio con cargo + diferencia de precio",
+        "Sin devolución de pasaje",
+        "Asiento del medio bloqueado",
+        "Mejor oferta gastronómica",
+        "Más espacio para tus piernas",
+        "Embarque y desembarque prioritario",
+        "Acumula más: 20 puntos calificables por dólar"
+      ]
+    },
+    "seats": ["5A", "5B"],
+    "passengers": [
+      {
+        "fullName": "Alejandro Torres",
+        "documentNumber": "1032456789",
+        "birthDate": "1995-06-15T00:00:00.000"
+      },
+      {
+        "fullName": "Mariana Torres",
+        "documentNumber": "1098765432",
+        "birthDate": "1998-11-02T00:00:00.000"
+      }
+    ],
+    "payment": {
+      "cardHolderName": "Alejandro Torres",
+      "maskedCardNumber": "•••• •••• •••• 9988",
+      "expiry": "03/28"
+    },
+    "totalPrice": 788900,
+    "bookedAt": "2026-09-20T09:05:00.000"
+  }
+]

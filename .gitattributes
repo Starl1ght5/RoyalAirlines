@@ -1,0 +1,22 @@
+# Normaliza los finales de línea: LF en el repositorio, sin importar el SO.
+* text=auto eol=lf
+
+# Scripts de Windows: deben conservar CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: Git no debe tocarlos.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.jar binary
+*.keystore binary
+*.jks binary

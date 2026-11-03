@@ -1,0 +1,32 @@
+[
+  {
+    "code": "MAD",
+    "city": "Madrid",
+    "country": "España",
+    "airportName": "Adolfo Suárez"
+  },
+  {
+    "code": "DOH",
+    "city": "Doha",
+    "country": "Qatar",
+    "airportName": "Hamad International"
+  },
+  {
+    "code": "MIA",
+    "city": "Miami",
+    "country": "Estados Unidos",
+    "airportName": "Miami International"
+  },
+  {
+    "code": "CTG",
+    "city": "Cartagena",
+    "country": "Colombia",
+    "airportName": "Rafael Núñez"
+  },
+  {
+    "code": "CLO",
+    "city": "Cali",
+    "country": "Colombia",
+    "airportName": "Alfonso Bonilla Aragón"
+  }
+]

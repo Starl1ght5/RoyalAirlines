@@ -3,9 +3,6 @@ name: Build and push image
 on:
   push:
     branches: [ Python ]
-    paths:
-      - 'recommender/**'
-      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 jobs:
@@ -22,8 +19,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: ./recommender
-          file: ./recommender/Dockerfile
+          context: .
           push: true
           tags: |
             ${{ secrets.ACR_LOGIN_SERVER }}/recommender:${{ github.run_number }}

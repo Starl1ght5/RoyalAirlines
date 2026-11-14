@@ -71,6 +71,7 @@ public class UserService {
         newUser.setCreatedAt(LocalDateTime.now());
         newUser.setSchemaVersion(User.CURRENT_SCHEMA_VERSION);
         newUser.setUpdatedAt(LocalDateTime.now());
+        newUser.setVerified(true);
 
         try {
             userRepository.save(newUser);
@@ -99,31 +100,6 @@ public class UserService {
         userRepository.save(loggingUser);
 
         return jwtService.generateToken(loggingUser);
-    }
-
-    /**
-     * Marca la cuenta indicada como verificada e invalida su codigo.
-     *
-     * @param verificationCode codigo recibido por correo.
-     * @throws BadRequestException si el codigo no corresponde a ninguna cuenta pendiente de verificar.
-     */
-    public void verifyUser(String verificationCode) {
-        if (verificationCode == null || verificationCode.isBlank()) {
-            throw new BadRequestException("Codigo de verificacion invalido");
-        }
-
-        User requestingUser = userRepository.searchFromToken(verificationCode);
-
-        if (requestingUser == null) {
-            throw new BadRequestException("Codigo de verificacion invalido");
-        }
-
-        requestingUser.setVerified(true);
-        requestingUser.setVerificationCode("");
-
-        userRepository.save(requestingUser);
-
-        logger.info("Correo verificado, id: {}", requestingUser.getUserID());
     }
 
     /**

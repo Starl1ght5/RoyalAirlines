@@ -88,6 +88,13 @@ public class PromotionService {
     /** Horas que pasan antes de que se vuelva a calcular la coleccion al servir. */
     static final int STALE_AFTER_HOURS = 6;
 
+    /**
+     * Minutos que se espera antes de volver a recalcular al servir cuando el ultimo refresh no
+     * encontro vuelos utilizables. Sin esta pausa, con la coleccion vacia (o vieja) y sin vuelos,
+     * CADA peticion a {@code GET /promotions} repetia el calculo completo.
+     */
+    static final int EMPTY_REFRESH_COOLDOWN_MINUTES = 15;
+
     /** Dias hacia adelante que se miran los vuelos (igual que el snapshot de precios). */
     static final int DAYS_AHEAD = 90;
 
@@ -107,6 +114,13 @@ public class PromotionService {
     private final FlightRepository flightRepository;
     private final LocationRepository locationRepository;
     private final MoneyExchange moneyExchange;
+
+    /**
+     * Momento del ultimo refresh que no encontro vuelos utilizables ({@code null} si el ultimo
+     * termino bien o aun no hubo ninguno). Solo frena los refrescos que dispara el servir; el cron
+     * y el endpoint manual siempre calculan.
+     */
+    private volatile Instant lastEmptyRefreshAt;
 
     /** Ruta (origen, destino) resumida: decide el ranking y redacta la tarjeta. */
     record RouteStat(String originIata, String destinationIata, String originCity,
@@ -129,7 +143,7 @@ public class PromotionService {
      *         simplemente no se renderiza).
      */
     public List<PromotionDTO> getActivePromotions() {
-        if (isStale(promotionRepository.findAll())) {
+        if (!inEmptyRefreshCooldown() && isStale(promotionRepository.findAll())) {
             refresh();
         }
 
@@ -161,8 +175,10 @@ public class PromotionService {
         if (selected.isEmpty()) {
             logger.warn("Promotions: sin vuelos utilizables ({} rutas evaluadas); se conservan las promociones actuales",
                     routes.size());
+            lastEmptyRefreshAt = Instant.now();
             return new RefreshResult(routes.size(), 0, List.of(), true);
         }
+        lastEmptyRefreshAt = null;
 
         // active=false escrito a mano (por ejemplo desde la base) se respeta en el refresh.
         Map<String, Boolean> activeBefore = promotionRepository.findAll().stream()
@@ -193,6 +209,13 @@ public class PromotionService {
         logger.info("Promotions: {} rutas evaluadas -> {} promociones ({} retiradas)",
                 routes.size(), generated.size(), removed.size());
         return new RefreshResult(routes.size(), generated.size(), removed, false);
+    }
+
+    /** {@code true} si el ultimo refresh no hallo vuelos y aun no pasa la pausa de reintento. */
+    private boolean inEmptyRefreshCooldown() {
+        Instant last = lastEmptyRefreshAt;
+        return last != null
+                && last.isAfter(Instant.now().minus(Duration.ofMinutes(EMPTY_REFRESH_COOLDOWN_MINUTES)));
     }
 
     /** Coleccion vacia o con documentos de mas de {@value #STALE_AFTER_HOURS} horas. */

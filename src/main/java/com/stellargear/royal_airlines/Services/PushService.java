@@ -82,7 +82,13 @@ public class PushService {
     }
   }
 
-  /** Borra los tokens que FCM marca como desinstalados o invalidos. */
+  /**
+   * Borra los tokens que FCM marca como desinstalados ({@code UNREGISTERED}).
+   *
+   * <p>{@code INVALID_ARGUMENT} NO se borra: FCM tambien lo devuelve cuando el problema es el
+   * mensaje y no el token, y borrar por eso eliminaria tokens validos. Todo rechazo se registra
+   * con su codigo para poder diagnosticarlo.</p>
+   */
   private void removeDeadTokens(List<String> tokens, BatchResponse response) {
     List<String> dead = new ArrayList<>();
     List<SendResponse> results = response.getResponses();
@@ -93,8 +99,12 @@ public class PushService {
         continue;
       }
       MessagingErrorCode code = result.getException().getMessagingErrorCode();
-      if (code == MessagingErrorCode.UNREGISTERED || code == MessagingErrorCode.INVALID_ARGUMENT) {
-        dead.add(tokens.get(i));
+      String token = tokens.get(i);
+      logger.warn("FCM rechazo el token {}...: {} - {}",
+          token.substring(0, Math.min(10, token.length())), code,
+          result.getException().getMessage());
+      if (code == MessagingErrorCode.UNREGISTERED) {
+        dead.add(token);
       }
     }
     deviceTokenService.removeTokens(dead);

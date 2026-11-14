@@ -155,7 +155,8 @@ public class OfferNotificationService {
   }
 
   /**
-   * Reserva el registro de deduplicacion, envia el push y deja el estado final.
+   * Reserva el registro de deduplicacion, envia el push y deja el estado final. Si no hubo
+   * entrega, borra la reserva.
    *
    * @param userId destinatario.
    * @param tokens tokens FCM del usuario.
@@ -181,6 +182,9 @@ public class OfferNotificationService {
           OfferNotification.Status.SENT));
       return true;
     }
+    // Sin entrega: se libera la reserva para que este vuelo se pueda reintentar mas adelante
+    // (por ejemplo cuando el usuario registre un token nuevo) en vez de quedar bloqueado.
+    notificationRepository.deleteById(reserved.id());
     return false;
   }
 

@@ -1,6 +1,7 @@
+requests>=2.31
+beautifulsoup4>=4.12
+lxml>=5.0
+# solo si vas a usar --mongo
 pymongo>=4.6
-pandas>=2.1
-numpy>=1.26
-fastapi>=0.110
-uvicorn>=0.29
-python-dotenv>=1.0
+# solo para correr las pruebas
+pytest>=8.0
